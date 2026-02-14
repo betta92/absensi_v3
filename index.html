@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Guru</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ddd; }
+        button { background: #28a745; color: #fff; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #ccc; }
+        .error { color: red; font-size: 12px; }
+        #preview { width: 100%; display: none; margin-top: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📍 Absensi Guru</h2>
+        
+        <div id="areaAbsen">
+            <select id="namaGuru"><option>Memuat nama...</option></select>
+            <select id="statusAbsen" onchange="checkLogic()">
+                <option value="Hadir">Hadir</option>
+                <option value="Izin">Izin</option>
+                <option value="Sakit">Sakit</option>
+            </select>
+            <input type="password" id="pinInput" placeholder="PIN 4 Digit">
+            <input type="file" id="fotoInput" accept="image/*" capture="camera">
+            <img id="preview">
+            <div id="statusLabel">Mendeteksi lokasi...</div>
+            <button id="btnAbsen" disabled>Kirim Absen</button>
+            <p><a href="#" onclick="toggleMode('ganti')">Ganti PIN?</a></p>
+        </div>
+
+        <div id="areaGanti" style="display:none">
+            <h3>Ganti PIN</h3>
+            <input type="password" id="pinLama" placeholder="PIN Lama">
+            <input type="password" id="pinBaru" placeholder="PIN Baru">
+            <button onclick="prosesGantiPIN()" style="background:#ffc107">Update PIN</button>
+            <p><a href="#" onclick="toggleMode('absen')">Kembali</a></p>
+        </div>
+    </div>
+
+    <script>
+        const schoolLat = -7.541652; // GANTI INI
+        const schoolLng = 108.696533; // GANTI INI
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz9BmdbUPMOo2_mmiO_qSJ4ODPDOTUeuwmEgVsnqg0F04kCNqD60yFAVB4_PKfXyZzp6g/exec'; 
+        
+        let dataGuru = [], userDist = 0, base64Foto = "";
+        const statusLabel = document.getElementById('statusLabel');
+        const btnAbsen = document.getElementById('btnAbsen');
+
+        // AMBIL DATA GURU
+        window.onload = () => {
+            fetch(scriptURL).then(r => r.json()).then(d => {
+                dataGuru = d;
+                const s = document.getElementById('namaGuru');
+                s.innerHTML = '<option value="">-- Pilih Nama --</option>';
+                d.forEach(g => s.innerHTML += `<option value="${g.nama}">${g.nama}</option>`);
+            });
+        };
+
+        // KOMPRESI FOTO
+        document.getElementById('fotoInput').onchange = function(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.src = ev.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 600; canvas.height = (img.height/img.width)*600;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    base64Foto = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('preview').src = base64Foto;
+                    document.getElementById('preview').style.display = 'block';
+                };
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        // CEK LOKASI & JAM
+        function checkLogic() {
+            const jam = new Date().getHours();
+            const isTime = (jam >= 6 && jam < 8);
+            const status = document.getElementById('statusAbsen').value;
+
+            if (status === "Hadir") {
+                if (isTime && userDist <= 50) {
+                    statusLabel.innerHTML = "✅ Siap Absen"; btnAbsen.disabled = false;
+                } else {
+                    statusLabel.innerHTML = !isTime ? "❌ Diluar Jam (06-08)" : "❌ Diluar Radius";
+                    btnAbsen.disabled = true;
+                }
+            } else {
+                statusLabel.innerHTML = "✅ Mode Izin/Sakit"; btnAbsen.disabled = false;
+            }
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(p => {
+                const R = 6371e3;
+                const dLat = (schoolLat-p.coords.latitude)*Math.PI/180;
+                const dLon = (schoolLng-p.coords.longitude)*Math.PI/180;
+                const a = Math.sin(dLat/2)**2 + Math.cos(p.coords.latitude*Math.PI/180)*Math.cos(schoolLat*Math.PI/180)*Math.sin(dLon/2)**2;
+                userDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                checkLogic();
+            });
+        }
+
+        btnAbsen.onclick = () => {
+            const nama = document.getElementById('namaGuru').value;
+            const pin = document.getElementById('pinInput').value;
+            const valid = dataGuru.find(g => g.nama === nama && g.pin === pin);
+            
+            if(!valid) return alert("PIN SALAH!");
+            if(!base64Foto) return alert("FOTO WAJIB!");
+
+            btnAbsen.innerText = "Mengirim..."; btnAbsen.disabled = true;
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({nama, status_absen: document.getElementById('statusAbsen').value, jarak: Math.round(userDist), foto: base64Foto})})
+            .then(r => r.text()).then(res => {
+                if(res === "ALREADY_ABSENT") alert("Satu kali saja sehari!");
+                else if(res === "OUT_OF_TIME") alert("Waktu habis!");
+                else alert("Berhasil!");
+                location.reload();
+            });
+        };
+
+        function toggleMode(m) {
+            document.getElementById('areaAbsen').style.display = m === 'absen' ? 'block' : 'none';
+            document.getElementById('areaGanti').style.display = m === 'ganti' ? 'block' : 'none';
+        }
+
+        function prosesGantiPIN() {
+            const nama = document.getElementById('namaGuru').value;
+            const pinLama = document.getElementById('pinLama').value;
+            const pinBaru = document.getElementById('pinBaru').value;
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({action:"updatePIN", nama, pinLama, pinBaru})})
+            .then(() => { alert("Selesai!"); location.reload(); });
+        }
+    </script>
+</body>
+</html>
