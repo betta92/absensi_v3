@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Mengajar Guru</title>
+    <style>
+        body { font-family: sans-serif; background: #e9ecef; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        input, select, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #007bff; color: white; font-weight: bold; border: none; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        h2 { color: #333; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📖 Agenda Harian</h2>
+    <p style="font-size: 13px; color: #666;">Isi laporan setelah kegiatan belajar mengajar.</p>
+    <hr>
+    
+    <select id="namaGuru"><option>Memuat daftar guru...</option></select>
+    <input type="text" id="tanggal" placeholder="Hari, Tanggal (Contoh: Senin, 16 Feb)">
+    <input type="text" id="kelas" placeholder="Kelas (Contoh: X-IPA 1)">
+    <textarea id="materi" placeholder="Materi Ajar" rows="3"></textarea>
+    
+    <div class="grid">
+        <input type="number" id="jmlHadir" placeholder="Jml Hadir">
+        <input type="number" id="jmlSakit" placeholder="Jml Sakit">
+        <input type="number" id="jmlIzin" placeholder="Jml Izin">
+        <input type="number" id="jmlAlpa" placeholder="Jml Alpa">
+    </div>
+
+    <button id="btnSimpan" onclick="simpanAgenda()">Simpan Agenda</button>
+</div>
+
+<script>
+    const scriptURL = 'URL_WEB_APP_ANDA'; // SAMA DENGAN URL ABSENSI
+
+    // Ambil daftar guru saat buka halaman
+    window.onload = () => {
+        fetch(scriptURL).then(r => r.json()).then(d => {
+            const s = document.getElementById('namaGuru');
+            s.innerHTML = '<option value="">-- Pilih Nama --</option>';
+            d.forEach(g => s.innerHTML += `<option value="${g.nama}">${g.nama}</option>`);
+        });
+        // Set tanggal otomatis hari ini
+        const tgl = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('tanggal').value = tgl.toLocaleDateString('id-ID', options);
+    };
+
+    function simpanAgenda() {
+        const data = {
+            action: "simpanAgenda",
+            nama: document.getElementById('namaGuru').value,
+            tanggal: document.getElementById('tanggal').value,
+            kelas: document.getElementById('kelas').value,
+            materi: document.getElementById('materi').value,
+            jmlHadir: document.getElementById('jmlHadir').value,
+            jmlSakit: document.getElementById('jmlSakit').value,
+            jmlIzin: document.getElementById('jmlIzin').value,
+            jmlAlpa: document.getElementById('jmlAlpa').value
+        };
+
+        if(!data.nama || !data.kelas || !data.materi) return alert("Mohon lengkapi data!");
+
+        const btn = document.getElementById('btnSimpan');
+        btn.innerText = "Mengirim..."; btn.disabled = true;
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) })
+        .then(() => {
+            alert("Agenda Berhasil Disimpan!");
+            location.reload();
+        }).catch(() => {
+            alert("Terjadi kesalahan.");
+            btn.disabled = false;
+        });
+    }
+</script>
+
+</body>
+</html>
