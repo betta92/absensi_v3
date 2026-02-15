@@ -45,7 +45,7 @@
     <script>
         const schoolLat = -7.541652; // GANTI INI
         const schoolLng = 108.696533; // GANTI INI
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxQkoIt6UMTV8rsz57f9TzO-fIo0xt7rdNZdK3Ysm9LOVX_8djKlOuhCYlmse_4fAB0nA/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzvJM7BwWBcaKR_U12egF5lIWBN4XpoFQlJl3MpQtSAvFCNGwxshn3eEiU-WE3Av0ykPQ/exec'; 
         
         let dataGuru = [], userDist = 0, base64Foto = "";
         const statusLabel = document.getElementById('statusLabel');
@@ -82,7 +82,7 @@
         // CEK LOKASI & JAM
         function checkLogic() {
             const jam = new Date().getHours();
-            const isTime = (jam >= 6 && jam < 10);
+            const isTime = (jam >= 6 && jam < 12);
             const status = document.getElementById('statusAbsen').value;
 
             if (status === "Hadir") {
@@ -142,4 +142,5 @@
 </body>
 
 </html>
+
 
