@@ -82,14 +82,14 @@
         // CEK LOKASI & JAM
         function checkLogic() {
             const jam = new Date().getHours();
-            const isTime = (jam >= 6 && jam < 12);
+            const isTime = (jam >= 6 && jam < 9);
             const status = document.getElementById('statusAbsen').value;
 
             if (status === "Hadir") {
                 if (isTime && userDist <= 50) {
                     statusLabel.innerHTML = "✅ Siap Absen"; btnAbsen.disabled = false;
                 } else {
-                    statusLabel.innerHTML = !isTime ? "❌ Diluar Jam (06-08)" : "❌ Diluar Radius";
+                    statusLabel.innerHTML = !isTime ? "❌ Diluar Jam (06-09)" : "❌ Diluar Radius";
                     btnAbsen.disabled = true;
                 }
             } else {
@@ -142,5 +142,6 @@
 </body>
 
 </html>
+
 
 
