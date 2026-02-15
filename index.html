@@ -95,7 +95,7 @@
         // CEK LOKASI & JAM
         function checkLogic() {
             const jam = new Date().getHours();
-            const isTime = (jam >= 6 && jam < 9);
+            const isTime = (jam >= 6 && jam < 12);
             const status = document.getElementById('statusAbsen').value;
 
             if (status === "Hadir") {
@@ -155,6 +155,7 @@
 </body>
 
 </html>
+
 
 
 
