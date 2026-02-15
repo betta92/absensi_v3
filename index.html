@@ -32,6 +32,23 @@
             <button id="btnAbsen" disabled>Kirim Absen</button>
             <p><a href="#" onclick="toggleMode('ganti')">Ganti PIN?</a></p>
         </div>
+        <div id="areaAbsen">
+    ...
+    <button id="btnAbsen" disabled>Kirim Absensi</button>
+</div>
+
+<div id="notifSukses" style="display:none; text-align:center; padding:20px;">
+    <div style="font-size: 50px;">✅</div>
+    <h3 style="color: #28a745;">Absensi Berhasil!</h3>
+    <p>Data Anda telah tercatat. Silahkan lanjut mengisi Agenda Harian setelah selesai mengajar.</p>
+    
+    <button onclick="window.location.href='agenda.html'" 
+            style="background:#007bff; color:white; padding:15px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; width:100%;">
+        📖 Buka Agenda Mengajar
+    </button>
+    
+    <p><a href="#" onclick="location.reload()" style="font-size:12px; color:#666;">Kembali ke Halaman Utama</a></p>
+</div>
 
         <div id="areaGanti" style="display:none">
             <h3>Ganti PIN</h3>
@@ -45,7 +62,7 @@
     <script>
         const schoolLat = -7.541652; // GANTI INI
         const schoolLng = 108.696533; // GANTI INI
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzvJM7BwWBcaKR_U12egF5lIWBN4XpoFQlJl3MpQtSAvFCNGwxshn3eEiU-WE3Av0ykPQ/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxg5wA4yp3klrLNL-B8P43thTVu1CmxRSvqevKWW6xXQNbXpxqXNH7BF5BgB2TZlIeaOQ/exec'; 
         
         let dataGuru = [], userDist = 0, base64Foto = "";
         const statusLabel = document.getElementById('statusLabel');
@@ -142,6 +159,7 @@
 </body>
 
 </html>
+
 
 
 
